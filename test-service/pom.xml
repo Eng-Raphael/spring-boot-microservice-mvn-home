@@ -34,9 +34,8 @@
             <groupId>com.axa</groupId>
             <artifactId>core-lib</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/core-lib-1.0.0.jar</systemPath>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.springframework/spring-webflux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

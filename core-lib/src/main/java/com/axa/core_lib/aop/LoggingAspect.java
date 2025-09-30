@@ -21,7 +21,7 @@ public class LoggingAspect {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingAspect.class);
 
     public LoggingAspect() {
-        LOGGER.info(">>> LoggingAspect bean created!");
+        LOGGER.info(">>> LoggingAspect bean created! , it's rafy for test");
     }
 
     private String buildLog(JoinPoint joinPoint, String severity, String content) {
