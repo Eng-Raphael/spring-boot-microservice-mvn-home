@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -18,7 +19,11 @@ import java.time.LocalDateTime;
 @Aspect
 @Component
 public class LoggingAspect {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingAspect.class);
+
+    @Value("${spring.application.name:UNKNOWN_SERVICE}")
+    private String applicationName;
 
     public LoggingAspect() {
         LOGGER.info(">>> LoggingAspect bean created! , it's rafy for test2");
@@ -31,8 +36,8 @@ public class LoggingAspect {
                         ? ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest()
                         : null;
 
-        String entity = "CORE_LIB"; // or pass from config
-        String application = "TEST_SERVICE"; // ideally use spring.application.name
+        String entity = "CORE_LIB";
+        String application = applicationName;
         String applicationElement = joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
         String securityFlag = "NO_AUTH";
         String dateTime = LocalDateTime.now().toString();
