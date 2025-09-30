@@ -1,4 +1,4 @@
-package com.axa.user_service.exception;
+package com.axa.core_lib.exception;
 
 public class UserAlreadyExistsException extends RuntimeException{
 

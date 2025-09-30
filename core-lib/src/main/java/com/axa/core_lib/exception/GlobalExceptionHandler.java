@@ -1,8 +1,6 @@
-package com.axa.user_service.exception;
+package com.axa.core_lib.exception;
 
-
-
-import com.axa.user_service.util.ApiResponse;
+import com.axa.core_lib.util.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

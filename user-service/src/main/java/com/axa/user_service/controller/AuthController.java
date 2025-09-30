@@ -1,12 +1,12 @@
 package com.axa.user_service.controller;
 
 
+import com.axa.core_lib.exception.UserAlreadyExistsException;
+import com.axa.core_lib.exception.InvalidCredentialsException;
 import com.axa.user_service.entity.User;
-import com.axa.user_service.exception.InvalidCredentialsException;
-import com.axa.user_service.exception.UserAlreadyExistsException;
 import com.axa.user_service.service.JwtService;
 import com.axa.user_service.service.UserService;
-import com.axa.user_service.util.ApiResponse;
+import com.axa.core_lib.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

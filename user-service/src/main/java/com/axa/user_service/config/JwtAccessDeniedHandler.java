@@ -1,6 +1,6 @@
 package com.axa.user_service.config;
 
-import com.axa.user_service.util.ApiResponse;
+import com.axa.core_lib.util.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
