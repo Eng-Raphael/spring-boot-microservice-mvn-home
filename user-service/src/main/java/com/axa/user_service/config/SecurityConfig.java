@@ -2,7 +2,9 @@ package com.axa.user_service.config;
 
 
 import com.axa.user_service.service.CustomUserDetailsService;
+import com.axa.user_service.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,13 +30,16 @@ public class SecurityConfig {
     @Autowired
     CustomUserDetailsService userDetailsService;
 
-    @Autowired
-    JwtFilter jwtFilter;
+    private final JwtService jwtService;
 
-    public SecurityConfig(JwtAuthenticationEntryPoint authenticationEntryPoint, JwtAccessDeniedHandler accessDeniedHandler) {
+
+    public SecurityConfig(JwtAuthenticationEntryPoint authenticationEntryPoint, JwtAccessDeniedHandler accessDeniedHandler, JwtService jwtService) {
+        this.jwtService = jwtService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
     }
+
+
 
     @Bean
     public AuthenticationProvider authProvider(){
@@ -45,7 +50,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public FilterRegistrationBean<JwtFilter> jwtFilterRegistration(JwtFilter jwtFilter) {
+        FilterRegistrationBean<JwtFilter> registration = new FilterRegistrationBean<>(jwtFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public JwtFilter jwtFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+        return new JwtFilter(jwtService, userDetailsService);
+    }
+
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtFilter jwtFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("register", "login").permitAll()

@@ -1,16 +1,18 @@
 package com.axa.test_service;
 
 
+import com.axa.core_lib.http.UserServiceClient;
+import com.axa.core_lib.http.WebClientFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
+
     @Bean
-    public WebClient userServiceWebClient(WebClient.Builder builder) {
-        return builder
-                .baseUrl("http://localhost:8081")
-                .build();
+    public UserServiceClient userServiceClient(@Value("${user.service.base-url}") String baseUrl) {
+        return new UserServiceClient(WebClientFactory.create(baseUrl));
     }
+
 }
