@@ -78,7 +78,7 @@ public class LoggingAspect {
                 }
             }
         }
-        
+
 
         String ip = (request != null) ? request.getRemoteAddr() : "N/A";
         String geo = "N/A";
