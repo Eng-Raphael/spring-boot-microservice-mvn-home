@@ -1,15 +1,15 @@
 package com.axa.core_lib.aop;
 
 
+import com.axa.core_lib.http.UserServiceClient;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,10 @@ public class LoggingAspect {
     @Value("${spring.application.name:UNKNOWN_SERVICE}")
     private String applicationName;
 
-    public LoggingAspect() {
+    private final UserServiceClient userServiceClient;
+
+    public LoggingAspect(@Lazy() UserServiceClient userServiceClient) {
+        this.userServiceClient = userServiceClient;
         LOGGER.info(">>> LoggingAspect bean created! , it's rafy for test2");
     }
 
@@ -47,6 +50,7 @@ public class LoggingAspect {
 
         String securityFlag = "NO_AUTH";
         String userId = "ANONYMOUS";
+        String userName = "ANONYMOUS";
 
         try {
             Class<?> ctxClass = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
@@ -64,6 +68,12 @@ public class LoggingAspect {
         }
 
         if ("NO_AUTH".equals(securityFlag) && request != null && request.getHeader("Authorization") != null) {
+            try{
+                userName = userServiceClient.validateToken(request.getHeader("Authorization"));
+                securityFlag = "TOKEN_PRESENT";
+            } catch (Exception e) {
+                userName = "Invaid_User_Name";
+            }
             securityFlag = "TOKEN_PRESENT"; // Token header exists, but no authenticated user
         }
 
@@ -87,38 +97,39 @@ public class LoggingAspect {
                 geo,
                 sessionId,
                 userId,
+                userName,
                 serviceAccessed,
                 content,
                 rawRequest
         );
     }
 
-    @Before("execution (* com..*.*(..)) && !within(com.axa.core_lib..*)")
+    @Before("execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)")
     public void logBefore(JoinPoint joinPoint) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Before execution"));
     }
 
-    @Before("execution(* com..service..*(..))")
+    @Before("execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)")
     public void logBeforeService(JoinPoint joinPoint) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Before execution"));
     }
 
-    @AfterThrowing(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*)", throwing = "ex")
+    @AfterThrowing(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)", throwing = "ex")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable ex) {
         LOGGER.error(buildLog(joinPoint, "ERROR", "Exception: " + ex.getMessage()));
     }
 
-    @AfterThrowing(pointcut = "execution(* com..service..*(..))", throwing = "ex")
+    @AfterThrowing(pointcut = "execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)", throwing = "ex")
     public void logAfterThrowingService(JoinPoint joinPoint, Throwable ex) {
         LOGGER.error(buildLog(joinPoint, "ERROR", "Exception: " + ex.getMessage()));
     }
 
-    @AfterReturning(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*)", returning = "result")
+    @AfterReturning(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)", returning = "result")
     public void logAfterReturning(JoinPoint joinPoint, Object result) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Returned: " + String.valueOf(result)));
     }
 
-    @AfterReturning(pointcut = "execution(* com..service..*(..))", returning = "result")
+    @AfterReturning(pointcut = "execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)", returning = "result")
     public void logAfterReturningService(JoinPoint joinPoint, Object result) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Returned: " + String.valueOf(result)));
     }
