@@ -62,5 +62,16 @@ public class AuthController {
     }
 
 
+    @GetMapping("user-name")
+    public ApiResponse<String> getUserNameForLog(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer "))
+        {
+            token = token.substring(7);
+        }
+        String username = jwtService.extractUserName(token);
+        return new ApiResponse<>("Valid token", username, "200");
+    }
+
+
 
 }

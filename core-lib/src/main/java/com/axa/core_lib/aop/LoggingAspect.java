@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Aspect
 @Component
@@ -28,7 +30,12 @@ public class LoggingAspect {
     @Value("${spring.application.name:UNKNOWN_SERVICE}")
     private String applicationName;
 
-    public LoggingAspect() {
+
+
+    private ApplicationContext applicationContext;
+
+    public LoggingAspect(   ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
         LOGGER.info(">>> LoggingAspect bean created! , it's rafy for test2");
     }
 
@@ -45,9 +52,10 @@ public class LoggingAspect {
         String dateTime = LocalDateTime.now().toString();
 
 
+        String userName = "ANONYMOUS";
         String securityFlag = "NO_AUTH";
-        String userId = "ANONYMOUS";
 
+        // Try Spring Security first...
         try {
             Class<?> ctxClass = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
             Object context = ctxClass.getMethod("getContext").invoke(null);
@@ -55,17 +63,29 @@ public class LoggingAspect {
 
             if (auth != null && (Boolean) auth.getClass().getMethod("isAuthenticated").invoke(auth)) {
                 securityFlag = "AUTH";
-                userId = (String) auth.getClass().getMethod("getName").invoke(auth);
+                userName = (String) auth.getClass().getMethod("getName").invoke(auth);
             }
-        } catch (ClassNotFoundException e) {
-            LOGGER.debug("Spring Security not found on classpath → falling back to NO_AUTH.");
         } catch (Exception e) {
-            LOGGER.warn("Could not resolve authentication context, using defaults: NO_AUTH/ANONYMOUS", e);
+            LOGGER.debug("No security context, falling back", e);
         }
 
-        if ("NO_AUTH".equals(securityFlag) && request != null && request.getHeader("Authorization") != null) {
-            securityFlag = "TOKEN_PRESENT"; // Token header exists, but no authenticated user
+        // If no Spring Security user, but token exists → try resolver
+        if ("NO_AUTH".equals(securityFlag) && request != null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && !authHeader.isBlank()) {
+                securityFlag = "TOKEN_PRESENT";
+                try {
+
+                    userName = applicationContext.getBean("userServiceClientLogging", com.axa.core_lib.http.UserServiceClientLogging.class)
+                            .getUserName(authHeader);
+                    securityFlag = "AUTH";
+                } catch (Exception ex) {
+                    LOGGER.warn("Failed to resolve username", ex);
+                }
+            }
         }
+
+
 
 
 
@@ -86,7 +106,7 @@ public class LoggingAspect {
                 ip,
                 geo,
                 sessionId,
-                userId,
+                userName,
                 serviceAccessed,
                 content,
                 rawRequest
