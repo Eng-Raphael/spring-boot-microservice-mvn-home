@@ -16,9 +16,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import java.time.LocalDateTime;
-import java.util.Optional;
+
 
 @Aspect
 @Component
@@ -30,17 +29,14 @@ public class LoggingAspect {
     @Value("${spring.application.name:UNKNOWN_SERVICE}")
     private String applicationName;
 
-
-
     private ApplicationContext applicationContext;
 
     public LoggingAspect(   ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-        LOGGER.info(">>> LoggingAspect bean created! , it's rafy for test2");
     }
 
     private String buildLog(JoinPoint joinPoint, String severity, String content) {
-        // Try to get request context
+
         HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()) != null
                         ? ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest()
@@ -55,7 +51,6 @@ public class LoggingAspect {
         String userName = "ANONYMOUS";
         String securityFlag = "NO_AUTH";
 
-        // Try Spring Security first...
         try {
             Class<?> ctxClass = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
             Object context = ctxClass.getMethod("getContext").invoke(null);
@@ -69,13 +64,12 @@ public class LoggingAspect {
             LOGGER.debug("No security context, falling back", e);
         }
 
-        // If no Spring Security user, but token exists → try resolver
+
         if ("NO_AUTH".equals(securityFlag) && request != null) {
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && !authHeader.isBlank()) {
                 securityFlag = "TOKEN_PRESENT";
                 try {
-
                     userName = applicationContext.getBean("userServiceClientLogging", com.axa.core_lib.http.UserServiceClientLogging.class)
                             .getUserName(authHeader);
                     securityFlag = "AUTH";
@@ -84,14 +78,10 @@ public class LoggingAspect {
                 }
             }
         }
-
-
-
-
-
+        
 
         String ip = (request != null) ? request.getRemoteAddr() : "N/A";
-        String geo = "N/A"; // placeholder unless GeoIP is added
+        String geo = "N/A";
         String sessionId = (request != null && request.getSession(false) != null) ? request.getSession().getId() : "N/A";
         String serviceAccessed = (request != null) ? request.getRequestURI() : "N/A";
         String rawRequest = (request != null) ? request.getMethod() + " " + request.getRequestURI() : "N/A";
