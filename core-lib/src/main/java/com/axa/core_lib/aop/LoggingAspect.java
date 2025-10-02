@@ -70,11 +70,12 @@ public class LoggingAspect {
         if ("NO_AUTH".equals(securityFlag) && request != null && request.getHeader("Authorization") != null) {
             try{
                 userName = userServiceClient.validateToken(request.getHeader("Authorization"));
-                securityFlag = "TOKEN_PRESENT";
+                    securityFlag = "AUTH";
             } catch (Exception e) {
                 userName = "Invaid_User_Name";
+                securityFlag = "TOKEN_PRESENT";
             }
-            securityFlag = "TOKEN_PRESENT"; // Token header exists, but no authenticated user
+
         }
 
 
@@ -104,35 +105,41 @@ public class LoggingAspect {
         );
     }
 
-    @Before("execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)")
+    @Before("execution (* com..*.*(..)) && !within(com.axa.core_lib..*) ")
     public void logBefore(JoinPoint joinPoint) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Before execution"));
     }
 
-    @Before("execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)")
+    @Before("execution(* com..service..*(..)) ")
     public void logBeforeService(JoinPoint joinPoint) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Before execution"));
     }
 
-    @AfterThrowing(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)", throwing = "ex")
+    @AfterThrowing(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) ", throwing = "ex")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable ex) {
         LOGGER.error(buildLog(joinPoint, "ERROR", "Exception: " + ex.getMessage()));
     }
 
-    @AfterThrowing(pointcut = "execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)", throwing = "ex")
+    @AfterThrowing(pointcut = "execution(* com..service..*(..))", throwing = "ex")
     public void logAfterThrowingService(JoinPoint joinPoint, Throwable ex) {
         LOGGER.error(buildLog(joinPoint, "ERROR", "Exception: " + ex.getMessage()));
     }
 
-    @AfterReturning(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) && !within(com.axa.core_lib.UserServiceClient)", returning = "result")
+    @AfterReturning(pointcut = "execution (* com..*.*(..)) && !within(com.axa.core_lib..*) ", returning = "result")
     public void logAfterReturning(JoinPoint joinPoint, Object result) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Returned: " + String.valueOf(result)));
     }
 
-    @AfterReturning(pointcut = "execution(* com..service..*(..)) && !within(com.axa.core_lib.UserServiceClient)", returning = "result")
+    @AfterReturning(pointcut = "execution(* com..service..*(..))", returning = "result")
     public void logAfterReturningService(JoinPoint joinPoint, Object result) {
         LOGGER.info(buildLog(joinPoint, "INFO", "Returned: " + String.valueOf(result)));
     }
+
+    @Around("execution(* *(..)) && !execution(* com.axa.core_lib.UserServiceClient.validateToken(..))")
+    public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        return joinPoint.proceed();
+    }
+
 
 
 //    @Before("within(@org.springframework.web.bind.annotation.RestController *)")
