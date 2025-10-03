@@ -27,6 +27,10 @@ public class UserService {
         return userRepo.existsByUsername(username);
     }
 
+    public int fetchUserId(String username){
+        return userRepo.findByUsername(username).getId();
+    }
+
 
 
 }

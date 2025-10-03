@@ -25,4 +25,18 @@ public class UserServiceClient {
         }
         throw new RuntimeException("Invalid token");
     }
+
+    public Integer validateTokenAndGetUserId(String authHeader) {
+        ApiResponse<Integer> response = webClient.get()
+                .uri("/get-userid")
+                .header("Authorization", authHeader)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<ApiResponse<Integer>>() {})
+                .block();
+
+        if (response != null && "200".equals(response.getHeader())) {
+            return response.getBody();
+        }
+        throw new RuntimeException("Invalid token");
+    }
 }

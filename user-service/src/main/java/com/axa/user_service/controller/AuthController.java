@@ -61,6 +61,20 @@ public class AuthController {
         }
     }
 
+    @GetMapping("get-userid")
+    public ApiResponse<Integer> getUserId(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        String username = jwtService.extractUserName(token);
+        if (jwtService.validateToken(token, username)) {
+            int userId = userService.fetchUserId(username);
+            return new ApiResponse<>("Valid token", userId, "200");
+        } else {
+            throw new InvalidCredentialsException("Invalid token");
+        }
+    }
+
 
 
 }

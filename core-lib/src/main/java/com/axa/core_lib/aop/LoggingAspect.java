@@ -60,6 +60,7 @@ public class LoggingAspect {
             if (auth != null && (Boolean) auth.getClass().getMethod("isAuthenticated").invoke(auth)) {
                 securityFlag = "AUTH";
                 userId = (String) auth.getClass().getMethod("getName").invoke(auth);
+                System.out.println(userId);
             }
         } catch (ClassNotFoundException e) {
             LOGGER.debug("Spring Security not found on classpath → falling back to NO_AUTH.");
@@ -70,7 +71,8 @@ public class LoggingAspect {
         if ("NO_AUTH".equals(securityFlag) && request != null && request.getHeader("Authorization") != null) {
             try{
                 userName = userServiceClient.validateToken(request.getHeader("Authorization"));
-                    securityFlag = "AUTH";
+                userId  = userServiceClient.validateTokenAndGetUserId(request.getHeader("Authorization")).toString();
+                securityFlag = "AUTH";
             } catch (Exception e) {
                 userName = "Invaid_User_Name";
                 securityFlag = "TOKEN_PRESENT";
