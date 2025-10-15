@@ -25,11 +25,14 @@ public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
 
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("register")
     public ApiResponse<User> register(@RequestBody User user) {
         if(userService.checkIfUserExsists(user.getUsername())){
             throw new UserAlreadyExistsException("User Already Exists");
         }
+        LOGGER.info("Register success for username={}", user.getUsername());
         return new ApiResponse<>("register success", userService.saveUser(user), "200");
     }
 
@@ -41,6 +44,7 @@ public class AuthController {
 
         if(authentication.isAuthenticated()) {
             String token = jwtService.generateToken(user.getUsername());
+            LOGGER.info("Login success for username={}", user.getUsername());
             return new ApiResponse<>("Login success", token, "200");
         }
         else {
